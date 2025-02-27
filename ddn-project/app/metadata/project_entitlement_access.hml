@@ -1,0 +1,201 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: project_entitlement_access
+  fields:
+    - name: created_at
+      type: timestamptz!
+    - name: deleted_at
+      type: timestamptz
+    - name: entitlement_id
+      type: uuid!
+    - name: id
+      type: uuid!
+    - name: project_id
+      type: uuid!
+    - name: updated_at
+      type: timestamptz!
+  graphql:
+    typeName: project_entitlement_access
+    inputTypeName: project_entitlement_access_input
+  dataConnectorTypeMapping:
+    - dataConnectorName: postgres
+      dataConnectorObjectType: project_entitlement_access
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: project_entitlement_access
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - created_at
+          - deleted_at
+          - entitlement_id
+          - id
+          - project_id
+          - updated_at
+
+---
+kind: BooleanExpressionType
+version: v1
+definition:
+  name: project_entitlement_access_bool_exp
+  operand:
+    object:
+      type: project_entitlement_access
+      comparableFields:
+        - fieldName: created_at
+          booleanExpressionType: timestamptz_bool_exp
+        - fieldName: deleted_at
+          booleanExpressionType: timestamptz_bool_exp
+        - fieldName: entitlement_id
+          booleanExpressionType: uuid_bool_exp
+        - fieldName: id
+          booleanExpressionType: uuid_bool_exp
+        - fieldName: project_id
+          booleanExpressionType: uuid_bool_exp
+        - fieldName: updated_at
+          booleanExpressionType: timestamptz_bool_exp
+      comparableRelationships:
+        - relationshipName: project_entitlement_catalog
+        - relationshipName: project
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: true
+  graphql:
+    typeName: project_entitlement_access_bool_exp
+
+---
+kind: AggregateExpression
+version: v1
+definition:
+  name: project_entitlement_access_agg_exp
+  operand:
+    object:
+      aggregatedType: project_entitlement_access
+      aggregatableFields:
+        - fieldName: created_at
+          aggregateExpression: timestamptz_agg_exp
+        - fieldName: deleted_at
+          aggregateExpression: timestamptz_agg_exp
+        - fieldName: entitlement_id
+          aggregateExpression: uuid_agg_exp
+        - fieldName: id
+          aggregateExpression: uuid_agg_exp
+        - fieldName: project_id
+          aggregateExpression: uuid_agg_exp
+        - fieldName: updated_at
+          aggregateExpression: timestamptz_agg_exp
+  count:
+    enable: true
+  graphql:
+    selectTypeName: project_entitlement_access_agg_exp
+
+---
+kind: OrderByExpression
+version: v1
+definition:
+  name: project_entitlement_access_order_by_exp
+  operand:
+    object:
+      orderedType: project_entitlement_access
+      orderableFields:
+        - fieldName: created_at
+          orderByExpression: timestamptz_order_by_exp
+        - fieldName: deleted_at
+          orderByExpression: timestamptz_order_by_exp
+        - fieldName: entitlement_id
+          orderByExpression: uuid_order_by_exp
+        - fieldName: id
+          orderByExpression: uuid_order_by_exp
+        - fieldName: project_id
+          orderByExpression: uuid_order_by_exp
+        - fieldName: updated_at
+          orderByExpression: timestamptz_order_by_exp
+      orderableRelationships:
+        - relationshipName: project_entitlement_catalog
+        - relationshipName: project
+  graphql:
+    expressionTypeName: project_entitlement_access_order_by_exp
+
+---
+kind: Model
+version: v2
+definition:
+  name: project_entitlement_access
+  objectType: project_entitlement_access
+  source:
+    dataConnectorName: postgres
+    collection: project_entitlement_access
+  filterExpressionType: project_entitlement_access_bool_exp
+  aggregateExpression: project_entitlement_access_agg_exp
+  orderByExpression: project_entitlement_access_order_by_exp
+  graphql:
+    selectMany:
+      queryRootField: project_entitlement_access
+      subscription:
+        rootField: project_entitlement_access
+    selectUniques:
+      - queryRootField: project_entitlement_access_by_id
+        uniqueIdentifier:
+          - id
+        subscription:
+          rootField: project_entitlement_access_by_id
+    filterInputTypeName: project_entitlement_access_filter_input
+    aggregate:
+      queryRootField: project_entitlement_access_aggregate
+      subscription:
+        rootField: project_entitlement_access_aggregate
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: project_entitlement_access
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        allowSubscriptions: true
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: project_entitlement_catalog
+  sourceType: project_entitlement_access
+  target:
+    model:
+      name: project_entitlement_catalog
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: entitlement_id
+      target:
+        modelField:
+          - fieldName: id
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: project
+  sourceType: project_entitlement_access
+  target:
+    model:
+      name: projects
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: project_id
+      target:
+        modelField:
+          - fieldName: id
+

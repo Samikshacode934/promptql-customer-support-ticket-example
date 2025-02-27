@@ -1,0 +1,173 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: error_rate_daily
+  fields:
+    - name: date
+      type: date!
+    - name: error_count
+      type: int4
+    - name: error_rate
+      type: float8
+    - name: project_id
+      type: uuid!
+    - name: success_count
+      type: int4
+  graphql:
+    typeName: error_rate_daily
+    inputTypeName: error_rate_daily_input
+  dataConnectorTypeMapping:
+    - dataConnectorName: postgres
+      dataConnectorObjectType: error_rate_daily
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: error_rate_daily
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - date
+          - error_count
+          - error_rate
+          - project_id
+          - success_count
+
+---
+kind: BooleanExpressionType
+version: v1
+definition:
+  name: error_rate_daily_bool_exp
+  operand:
+    object:
+      type: error_rate_daily
+      comparableFields:
+        - fieldName: date
+          booleanExpressionType: date_bool_exp
+        - fieldName: error_count
+          booleanExpressionType: int4_bool_exp
+        - fieldName: error_rate
+          booleanExpressionType: float8_bool_exp
+        - fieldName: project_id
+          booleanExpressionType: uuid_bool_exp
+        - fieldName: success_count
+          booleanExpressionType: int4_bool_exp
+      comparableRelationships:
+        - relationshipName: project
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: true
+  graphql:
+    typeName: error_rate_daily_bool_exp
+
+---
+kind: AggregateExpression
+version: v1
+definition:
+  name: error_rate_daily_agg_exp
+  operand:
+    object:
+      aggregatedType: error_rate_daily
+      aggregatableFields:
+        - fieldName: date
+          aggregateExpression: date_agg_exp
+        - fieldName: error_count
+          aggregateExpression: int4_agg_exp
+        - fieldName: error_rate
+          aggregateExpression: float8_agg_exp
+        - fieldName: project_id
+          aggregateExpression: uuid_agg_exp
+        - fieldName: success_count
+          aggregateExpression: int4_agg_exp
+  count:
+    enable: true
+  graphql:
+    selectTypeName: error_rate_daily_agg_exp
+
+---
+kind: OrderByExpression
+version: v1
+definition:
+  name: error_rate_daily_order_by_exp
+  operand:
+    object:
+      orderedType: error_rate_daily
+      orderableFields:
+        - fieldName: date
+          orderByExpression: date_order_by_exp
+        - fieldName: error_count
+          orderByExpression: int4_order_by_exp
+        - fieldName: error_rate
+          orderByExpression: float8_order_by_exp
+        - fieldName: project_id
+          orderByExpression: uuid_order_by_exp
+        - fieldName: success_count
+          orderByExpression: int4_order_by_exp
+      orderableRelationships:
+        - relationshipName: project
+  graphql:
+    expressionTypeName: error_rate_daily_order_by_exp
+
+---
+kind: Model
+version: v2
+definition:
+  name: error_rate_daily
+  objectType: error_rate_daily
+  source:
+    dataConnectorName: postgres
+    collection: error_rate_daily
+  filterExpressionType: error_rate_daily_bool_exp
+  aggregateExpression: error_rate_daily_agg_exp
+  orderByExpression: error_rate_daily_order_by_exp
+  graphql:
+    selectMany:
+      queryRootField: error_rate_daily
+      subscription:
+        rootField: error_rate_daily
+    selectUniques:
+      - queryRootField: error_rate_daily_by_error_rate_daily_pkey
+        uniqueIdentifier:
+          - date
+          - project_id
+        subscription:
+          rootField: error_rate_daily_by_error_rate_daily_pkey
+    filterInputTypeName: error_rate_daily_filter_input
+    aggregate:
+      queryRootField: error_rate_daily_aggregate
+      subscription:
+        rootField: error_rate_daily_aggregate
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: error_rate_daily
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        allowSubscriptions: true
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: project
+  sourceType: error_rate_daily
+  target:
+    model:
+      name: projects
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: project_id
+      target:
+        modelField:
+          - fieldName: id
+

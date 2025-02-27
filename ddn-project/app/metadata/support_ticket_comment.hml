@@ -1,0 +1,192 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: support_ticket_comment
+  fields:
+    - name: body
+      type: text
+    - name: created_at
+      type: timestamptz
+    - name: id
+      type: int4!
+    - name: ticket_id
+      type: int4
+    - name: user_id
+      type: int4
+  graphql:
+    typeName: support_ticket_comment
+    inputTypeName: support_ticket_comment_input
+  dataConnectorTypeMapping:
+    - dataConnectorName: postgres
+      dataConnectorObjectType: support_ticket_comment
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: support_ticket_comment
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - body
+          - created_at
+          - id
+          - ticket_id
+          - user_id
+
+---
+kind: BooleanExpressionType
+version: v1
+definition:
+  name: support_ticket_comment_bool_exp
+  operand:
+    object:
+      type: support_ticket_comment
+      comparableFields:
+        - fieldName: body
+          booleanExpressionType: text_bool_exp
+        - fieldName: created_at
+          booleanExpressionType: timestamptz_bool_exp
+        - fieldName: id
+          booleanExpressionType: int4_bool_exp
+        - fieldName: ticket_id
+          booleanExpressionType: int4_bool_exp
+        - fieldName: user_id
+          booleanExpressionType: int4_bool_exp
+      comparableRelationships:
+        - relationshipName: support_ticket
+        - relationshipName: support_user
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: true
+  graphql:
+    typeName: support_ticket_comment_bool_exp
+
+---
+kind: AggregateExpression
+version: v1
+definition:
+  name: support_ticket_comment_agg_exp
+  operand:
+    object:
+      aggregatedType: support_ticket_comment
+      aggregatableFields:
+        - fieldName: body
+          aggregateExpression: text_agg_exp
+        - fieldName: created_at
+          aggregateExpression: timestamptz_agg_exp
+        - fieldName: id
+          aggregateExpression: int4_agg_exp
+        - fieldName: ticket_id
+          aggregateExpression: int4_agg_exp
+        - fieldName: user_id
+          aggregateExpression: int4_agg_exp
+  count:
+    enable: true
+  graphql:
+    selectTypeName: support_ticket_comment_agg_exp
+
+---
+kind: OrderByExpression
+version: v1
+definition:
+  name: support_ticket_comment_order_by_exp
+  operand:
+    object:
+      orderedType: support_ticket_comment
+      orderableFields:
+        - fieldName: body
+          orderByExpression: text_order_by_exp
+        - fieldName: created_at
+          orderByExpression: timestamptz_order_by_exp
+        - fieldName: id
+          orderByExpression: int4_order_by_exp
+        - fieldName: ticket_id
+          orderByExpression: int4_order_by_exp
+        - fieldName: user_id
+          orderByExpression: int4_order_by_exp
+      orderableRelationships:
+        - relationshipName: support_ticket
+        - relationshipName: support_user
+  graphql:
+    expressionTypeName: support_ticket_comment_order_by_exp
+
+---
+kind: Model
+version: v2
+definition:
+  name: support_ticket_comment
+  objectType: support_ticket_comment
+  source:
+    dataConnectorName: postgres
+    collection: support_ticket_comment
+  filterExpressionType: support_ticket_comment_bool_exp
+  aggregateExpression: support_ticket_comment_agg_exp
+  orderByExpression: support_ticket_comment_order_by_exp
+  graphql:
+    selectMany:
+      queryRootField: support_ticket_comment
+      subscription:
+        rootField: support_ticket_comment
+    selectUniques:
+      - queryRootField: support_ticket_comment_by_id
+        uniqueIdentifier:
+          - id
+        subscription:
+          rootField: support_ticket_comment_by_id
+    filterInputTypeName: support_ticket_comment_filter_input
+    aggregate:
+      queryRootField: support_ticket_comment_aggregate
+      subscription:
+        rootField: support_ticket_comment_aggregate
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: support_ticket_comment
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        allowSubscriptions: true
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: support_ticket
+  sourceType: support_ticket_comment
+  target:
+    model:
+      name: support_ticket
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: ticket_id
+      target:
+        modelField:
+          - fieldName: id
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: support_user
+  sourceType: support_ticket_comment
+  target:
+    model:
+      name: support_user
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: user_id
+      target:
+        modelField:
+          - fieldName: id
+

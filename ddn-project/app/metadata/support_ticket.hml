@@ -1,0 +1,269 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: support_ticket
+  fields:
+    - name: assignee_id
+      type: int4
+    - name: created_at
+      type: timestamptz
+    - name: description
+      type: text
+    - name: id
+      type: int4!
+    - name: is_public
+      type: bool!
+    - name: priority
+      type: text
+    - name: requester_id
+      type: int4
+    - name: status
+      type: text
+    - name: subject
+      type: text
+    - name: type
+      type: text
+    - name: url
+      type: text
+  graphql:
+    typeName: support_ticket
+    inputTypeName: support_ticket_input
+  dataConnectorTypeMapping:
+    - dataConnectorName: postgres
+      dataConnectorObjectType: support_ticket
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: support_ticket
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - assignee_id
+          - created_at
+          - description
+          - id
+          - is_public
+          - priority
+          - requester_id
+          - status
+          - subject
+          - type
+          - url
+
+---
+kind: BooleanExpressionType
+version: v1
+definition:
+  name: support_ticket_bool_exp
+  operand:
+    object:
+      type: support_ticket
+      comparableFields:
+        - fieldName: assignee_id
+          booleanExpressionType: int4_bool_exp
+        - fieldName: created_at
+          booleanExpressionType: timestamptz_bool_exp
+        - fieldName: description
+          booleanExpressionType: text_bool_exp
+        - fieldName: id
+          booleanExpressionType: int4_bool_exp
+        - fieldName: is_public
+          booleanExpressionType: bool_bool_exp
+        - fieldName: priority
+          booleanExpressionType: text_bool_exp
+        - fieldName: requester_id
+          booleanExpressionType: int4_bool_exp
+        - fieldName: status
+          booleanExpressionType: text_bool_exp
+        - fieldName: subject
+          booleanExpressionType: text_bool_exp
+        - fieldName: type
+          booleanExpressionType: text_bool_exp
+        - fieldName: url
+          booleanExpressionType: text_bool_exp
+      comparableRelationships:
+        - relationshipName: support_user
+        - relationshipName: support_user_by_requester_id
+        - relationshipName: support_ticket_comments
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: true
+  graphql:
+    typeName: support_ticket_bool_exp
+
+---
+kind: AggregateExpression
+version: v1
+definition:
+  name: support_ticket_agg_exp
+  operand:
+    object:
+      aggregatedType: support_ticket
+      aggregatableFields:
+        - fieldName: assignee_id
+          aggregateExpression: int4_agg_exp
+        - fieldName: created_at
+          aggregateExpression: timestamptz_agg_exp
+        - fieldName: description
+          aggregateExpression: text_agg_exp
+        - fieldName: id
+          aggregateExpression: int4_agg_exp
+        - fieldName: is_public
+          aggregateExpression: bool_agg_exp
+        - fieldName: priority
+          aggregateExpression: text_agg_exp
+        - fieldName: requester_id
+          aggregateExpression: int4_agg_exp
+        - fieldName: status
+          aggregateExpression: text_agg_exp
+        - fieldName: subject
+          aggregateExpression: text_agg_exp
+        - fieldName: type
+          aggregateExpression: text_agg_exp
+        - fieldName: url
+          aggregateExpression: text_agg_exp
+  count:
+    enable: true
+  graphql:
+    selectTypeName: support_ticket_agg_exp
+
+---
+kind: OrderByExpression
+version: v1
+definition:
+  name: support_ticket_order_by_exp
+  operand:
+    object:
+      orderedType: support_ticket
+      orderableFields:
+        - fieldName: assignee_id
+          orderByExpression: int4_order_by_exp
+        - fieldName: created_at
+          orderByExpression: timestamptz_order_by_exp
+        - fieldName: description
+          orderByExpression: text_order_by_exp
+        - fieldName: id
+          orderByExpression: int4_order_by_exp
+        - fieldName: is_public
+          orderByExpression: bool_order_by_exp
+        - fieldName: priority
+          orderByExpression: text_order_by_exp
+        - fieldName: requester_id
+          orderByExpression: int4_order_by_exp
+        - fieldName: status
+          orderByExpression: text_order_by_exp
+        - fieldName: subject
+          orderByExpression: text_order_by_exp
+        - fieldName: type
+          orderByExpression: text_order_by_exp
+        - fieldName: url
+          orderByExpression: text_order_by_exp
+      orderableRelationships:
+        - relationshipName: support_user
+        - relationshipName: support_user_by_requester_id
+  graphql:
+    expressionTypeName: support_ticket_order_by_exp
+
+---
+kind: Model
+version: v2
+definition:
+  name: support_ticket
+  objectType: support_ticket
+  source:
+    dataConnectorName: postgres
+    collection: support_ticket
+  filterExpressionType: support_ticket_bool_exp
+  aggregateExpression: support_ticket_agg_exp
+  orderByExpression: support_ticket_order_by_exp
+  graphql:
+    selectMany:
+      queryRootField: support_ticket
+      subscription:
+        rootField: support_ticket
+    selectUniques:
+      - queryRootField: support_ticket_by_id
+        uniqueIdentifier:
+          - id
+        subscription:
+          rootField: support_ticket_by_id
+    filterInputTypeName: support_ticket_filter_input
+    aggregate:
+      queryRootField: support_ticket_aggregate
+      subscription:
+        rootField: support_ticket_aggregate
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: support_ticket
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        allowSubscriptions: true
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: support_user
+  sourceType: support_ticket
+  target:
+    model:
+      name: support_user
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: assignee_id
+      target:
+        modelField:
+          - fieldName: id
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: support_user_by_requester_id
+  sourceType: support_ticket
+  target:
+    model:
+      name: support_user
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: requester_id
+      target:
+        modelField:
+          - fieldName: id
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: support_ticket_comments
+  sourceType: support_ticket
+  target:
+    model:
+      name: support_ticket_comment
+      relationshipType: Array
+      aggregate:
+        aggregateExpression: support_ticket_comment_agg_exp
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: ticket_id
+  graphql:
+    aggregateFieldName: support_ticket_comments_aggregate
+

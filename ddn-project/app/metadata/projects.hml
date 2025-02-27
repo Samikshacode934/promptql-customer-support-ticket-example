@@ -1,0 +1,314 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: projects
+  fields:
+    - name: active_commands
+      type: int4!
+    - name: active_models
+      type: int4!
+    - name: created_at
+      type: timestamptz!
+    - name: deleted_at
+      type: timestamptz
+    - name: id
+      type: uuid!
+    - name: name
+      type: text!
+    - name: owner_id
+      type: uuid!
+    - name: updated_at
+      type: timestamptz!
+  graphql:
+    typeName: projects
+    inputTypeName: projects_input
+  dataConnectorTypeMapping:
+    - dataConnectorName: postgres
+      dataConnectorObjectType: projects
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: projects
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - active_commands
+          - active_models
+          - created_at
+          - deleted_at
+          - id
+          - name
+          - owner_id
+          - updated_at
+
+---
+kind: BooleanExpressionType
+version: v1
+definition:
+  name: projects_bool_exp
+  operand:
+    object:
+      type: projects
+      comparableFields:
+        - fieldName: active_commands
+          booleanExpressionType: int4_bool_exp
+        - fieldName: active_models
+          booleanExpressionType: int4_bool_exp
+        - fieldName: created_at
+          booleanExpressionType: timestamptz_bool_exp
+        - fieldName: deleted_at
+          booleanExpressionType: timestamptz_bool_exp
+        - fieldName: id
+          booleanExpressionType: uuid_bool_exp
+        - fieldName: name
+          booleanExpressionType: text_bool_exp
+        - fieldName: owner_id
+          booleanExpressionType: uuid_bool_exp
+        - fieldName: updated_at
+          booleanExpressionType: timestamptz_bool_exp
+      comparableRelationships:
+        - relationshipName: error_rate_dailies
+        - relationshipName: invoice_items
+        - relationshipName: project_entitlement_accesses
+        - relationshipName: project_plan_changelogs
+        - relationshipName: user
+        - relationshipName: requests_daily_counts
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: true
+  graphql:
+    typeName: projects_bool_exp
+
+---
+kind: AggregateExpression
+version: v1
+definition:
+  name: projects_agg_exp
+  operand:
+    object:
+      aggregatedType: projects
+      aggregatableFields:
+        - fieldName: active_commands
+          aggregateExpression: int4_agg_exp
+        - fieldName: active_models
+          aggregateExpression: int4_agg_exp
+        - fieldName: created_at
+          aggregateExpression: timestamptz_agg_exp
+        - fieldName: deleted_at
+          aggregateExpression: timestamptz_agg_exp
+        - fieldName: id
+          aggregateExpression: uuid_agg_exp
+        - fieldName: name
+          aggregateExpression: text_agg_exp
+        - fieldName: owner_id
+          aggregateExpression: uuid_agg_exp
+        - fieldName: updated_at
+          aggregateExpression: timestamptz_agg_exp
+  count:
+    enable: true
+  graphql:
+    selectTypeName: projects_agg_exp
+
+---
+kind: OrderByExpression
+version: v1
+definition:
+  name: projects_order_by_exp
+  operand:
+    object:
+      orderedType: projects
+      orderableFields:
+        - fieldName: active_commands
+          orderByExpression: int4_order_by_exp
+        - fieldName: active_models
+          orderByExpression: int4_order_by_exp
+        - fieldName: created_at
+          orderByExpression: timestamptz_order_by_exp
+        - fieldName: deleted_at
+          orderByExpression: timestamptz_order_by_exp
+        - fieldName: id
+          orderByExpression: uuid_order_by_exp
+        - fieldName: name
+          orderByExpression: text_order_by_exp
+        - fieldName: owner_id
+          orderByExpression: uuid_order_by_exp
+        - fieldName: updated_at
+          orderByExpression: timestamptz_order_by_exp
+      orderableRelationships:
+        - relationshipName: user
+  graphql:
+    expressionTypeName: projects_order_by_exp
+
+---
+kind: Model
+version: v2
+definition:
+  name: projects
+  objectType: projects
+  source:
+    dataConnectorName: postgres
+    collection: projects
+  filterExpressionType: projects_bool_exp
+  aggregateExpression: projects_agg_exp
+  orderByExpression: projects_order_by_exp
+  graphql:
+    selectMany:
+      queryRootField: projects
+      subscription:
+        rootField: projects
+    selectUniques:
+      - queryRootField: projects_by_id
+        uniqueIdentifier:
+          - id
+        subscription:
+          rootField: projects_by_id
+    filterInputTypeName: projects_filter_input
+    aggregate:
+      queryRootField: projects_aggregate
+      subscription:
+        rootField: projects_aggregate
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: projects
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        allowSubscriptions: true
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: error_rate_dailies
+  sourceType: projects
+  target:
+    model:
+      name: error_rate_daily
+      relationshipType: Array
+      aggregate:
+        aggregateExpression: error_rate_daily_agg_exp
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: project_id
+  graphql:
+    aggregateFieldName: error_rate_dailies_aggregate
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: invoice_items
+  sourceType: projects
+  target:
+    model:
+      name: invoice_item
+      relationshipType: Array
+      aggregate:
+        aggregateExpression: invoice_item_agg_exp
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: project_id
+  graphql:
+    aggregateFieldName: invoice_items_aggregate
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: project_entitlement_accesses
+  sourceType: projects
+  target:
+    model:
+      name: project_entitlement_access
+      relationshipType: Array
+      aggregate:
+        aggregateExpression: project_entitlement_access_agg_exp
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: project_id
+  graphql:
+    aggregateFieldName: project_entitlement_accesses_aggregate
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: project_plan_changelogs
+  sourceType: projects
+  target:
+    model:
+      name: project_plan_changelogs
+      relationshipType: Array
+      aggregate:
+        aggregateExpression: project_plan_changelogs_agg_exp
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: project_id
+  graphql:
+    aggregateFieldName: project_plan_changelogs_aggregate
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: user
+  sourceType: projects
+  target:
+    model:
+      name: users
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: owner_id
+      target:
+        modelField:
+          - fieldName: id
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: requests_daily_counts
+  sourceType: projects
+  target:
+    model:
+      name: requests_daily_count
+      relationshipType: Array
+      aggregate:
+        aggregateExpression: requests_daily_count_agg_exp
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: project_id
+  graphql:
+    aggregateFieldName: requests_daily_counts_aggregate
+

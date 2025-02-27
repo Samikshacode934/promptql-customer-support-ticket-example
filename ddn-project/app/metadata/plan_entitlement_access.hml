@@ -1,0 +1,183 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: plan_entitlement_access
+  fields:
+    - name: created_at
+      type: timestamptz!
+    - name: entitlement_id
+      type: uuid!
+    - name: id
+      type: uuid!
+    - name: plan_id
+      type: uuid!
+  graphql:
+    typeName: plan_entitlement_access
+    inputTypeName: plan_entitlement_access_input
+  dataConnectorTypeMapping:
+    - dataConnectorName: postgres
+      dataConnectorObjectType: plan_entitlement_access
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: plan_entitlement_access
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - created_at
+          - entitlement_id
+          - id
+          - plan_id
+
+---
+kind: BooleanExpressionType
+version: v1
+definition:
+  name: plan_entitlement_access_bool_exp
+  operand:
+    object:
+      type: plan_entitlement_access
+      comparableFields:
+        - fieldName: created_at
+          booleanExpressionType: timestamptz_bool_exp
+        - fieldName: entitlement_id
+          booleanExpressionType: uuid_bool_exp
+        - fieldName: id
+          booleanExpressionType: uuid_bool_exp
+        - fieldName: plan_id
+          booleanExpressionType: uuid_bool_exp
+      comparableRelationships:
+        - relationshipName: project_entitlement_catalog
+        - relationshipName: plan
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: true
+  graphql:
+    typeName: plan_entitlement_access_bool_exp
+
+---
+kind: AggregateExpression
+version: v1
+definition:
+  name: plan_entitlement_access_agg_exp
+  operand:
+    object:
+      aggregatedType: plan_entitlement_access
+      aggregatableFields:
+        - fieldName: created_at
+          aggregateExpression: timestamptz_agg_exp
+        - fieldName: entitlement_id
+          aggregateExpression: uuid_agg_exp
+        - fieldName: id
+          aggregateExpression: uuid_agg_exp
+        - fieldName: plan_id
+          aggregateExpression: uuid_agg_exp
+  count:
+    enable: true
+  graphql:
+    selectTypeName: plan_entitlement_access_agg_exp
+
+---
+kind: OrderByExpression
+version: v1
+definition:
+  name: plan_entitlement_access_order_by_exp
+  operand:
+    object:
+      orderedType: plan_entitlement_access
+      orderableFields:
+        - fieldName: created_at
+          orderByExpression: timestamptz_order_by_exp
+        - fieldName: entitlement_id
+          orderByExpression: uuid_order_by_exp
+        - fieldName: id
+          orderByExpression: uuid_order_by_exp
+        - fieldName: plan_id
+          orderByExpression: uuid_order_by_exp
+      orderableRelationships:
+        - relationshipName: project_entitlement_catalog
+        - relationshipName: plan
+  graphql:
+    expressionTypeName: plan_entitlement_access_order_by_exp
+
+---
+kind: Model
+version: v2
+definition:
+  name: plan_entitlement_access
+  objectType: plan_entitlement_access
+  source:
+    dataConnectorName: postgres
+    collection: plan_entitlement_access
+  filterExpressionType: plan_entitlement_access_bool_exp
+  aggregateExpression: plan_entitlement_access_agg_exp
+  orderByExpression: plan_entitlement_access_order_by_exp
+  graphql:
+    selectMany:
+      queryRootField: plan_entitlement_access
+      subscription:
+        rootField: plan_entitlement_access
+    selectUniques:
+      - queryRootField: plan_entitlement_access_by_id
+        uniqueIdentifier:
+          - id
+        subscription:
+          rootField: plan_entitlement_access_by_id
+    filterInputTypeName: plan_entitlement_access_filter_input
+    aggregate:
+      queryRootField: plan_entitlement_access_aggregate
+      subscription:
+        rootField: plan_entitlement_access_aggregate
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: plan_entitlement_access
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        allowSubscriptions: true
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: project_entitlement_catalog
+  sourceType: plan_entitlement_access
+  target:
+    model:
+      name: project_entitlement_catalog
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: entitlement_id
+      target:
+        modelField:
+          - fieldName: id
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: plan
+  sourceType: plan_entitlement_access
+  target:
+    model:
+      name: plans
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: plan_id
+      target:
+        modelField:
+          - fieldName: id
+

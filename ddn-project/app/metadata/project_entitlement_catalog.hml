@@ -1,0 +1,225 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: project_entitlement_catalog
+  fields:
+    - name: base_cost
+      type: numeric
+    - name: config_is_enabled
+      type: bool
+    - name: config_limit
+      type: int4
+    - name: created_at
+      type: timestamptz!
+    - name: id
+      type: uuid!
+    - name: name
+      type: text!
+    - name: type
+      type: text!
+    - name: updated_at
+      type: timestamptz!
+  graphql:
+    typeName: project_entitlement_catalog
+    inputTypeName: project_entitlement_catalog_input
+  dataConnectorTypeMapping:
+    - dataConnectorName: postgres
+      dataConnectorObjectType: project_entitlement_catalog
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: project_entitlement_catalog
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - base_cost
+          - config_is_enabled
+          - config_limit
+          - created_at
+          - id
+          - name
+          - type
+          - updated_at
+
+---
+kind: BooleanExpressionType
+version: v1
+definition:
+  name: project_entitlement_catalog_bool_exp
+  operand:
+    object:
+      type: project_entitlement_catalog
+      comparableFields:
+        - fieldName: base_cost
+          booleanExpressionType: numeric_bool_exp
+        - fieldName: config_is_enabled
+          booleanExpressionType: bool_bool_exp
+        - fieldName: config_limit
+          booleanExpressionType: int4_bool_exp
+        - fieldName: created_at
+          booleanExpressionType: timestamptz_bool_exp
+        - fieldName: id
+          booleanExpressionType: uuid_bool_exp
+        - fieldName: name
+          booleanExpressionType: text_bool_exp
+        - fieldName: type
+          booleanExpressionType: text_bool_exp
+        - fieldName: updated_at
+          booleanExpressionType: timestamptz_bool_exp
+      comparableRelationships:
+        - relationshipName: plan_entitlement_accesses
+        - relationshipName: project_entitlement_accesses
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: true
+  graphql:
+    typeName: project_entitlement_catalog_bool_exp
+
+---
+kind: AggregateExpression
+version: v1
+definition:
+  name: project_entitlement_catalog_agg_exp
+  operand:
+    object:
+      aggregatedType: project_entitlement_catalog
+      aggregatableFields:
+        - fieldName: base_cost
+          aggregateExpression: numeric_agg_exp
+        - fieldName: config_is_enabled
+          aggregateExpression: bool_agg_exp
+        - fieldName: config_limit
+          aggregateExpression: int4_agg_exp
+        - fieldName: created_at
+          aggregateExpression: timestamptz_agg_exp
+        - fieldName: id
+          aggregateExpression: uuid_agg_exp
+        - fieldName: name
+          aggregateExpression: text_agg_exp
+        - fieldName: type
+          aggregateExpression: text_agg_exp
+        - fieldName: updated_at
+          aggregateExpression: timestamptz_agg_exp
+  count:
+    enable: true
+  graphql:
+    selectTypeName: project_entitlement_catalog_agg_exp
+
+---
+kind: OrderByExpression
+version: v1
+definition:
+  name: project_entitlement_catalog_order_by_exp
+  operand:
+    object:
+      orderedType: project_entitlement_catalog
+      orderableFields:
+        - fieldName: base_cost
+          orderByExpression: numeric_order_by_exp
+        - fieldName: config_is_enabled
+          orderByExpression: bool_order_by_exp
+        - fieldName: config_limit
+          orderByExpression: int4_order_by_exp
+        - fieldName: created_at
+          orderByExpression: timestamptz_order_by_exp
+        - fieldName: id
+          orderByExpression: uuid_order_by_exp
+        - fieldName: name
+          orderByExpression: text_order_by_exp
+        - fieldName: type
+          orderByExpression: text_order_by_exp
+        - fieldName: updated_at
+          orderByExpression: timestamptz_order_by_exp
+      orderableRelationships: []
+  graphql:
+    expressionTypeName: project_entitlement_catalog_order_by_exp
+
+---
+kind: Model
+version: v2
+definition:
+  name: project_entitlement_catalog
+  objectType: project_entitlement_catalog
+  source:
+    dataConnectorName: postgres
+    collection: project_entitlement_catalog
+  filterExpressionType: project_entitlement_catalog_bool_exp
+  aggregateExpression: project_entitlement_catalog_agg_exp
+  orderByExpression: project_entitlement_catalog_order_by_exp
+  graphql:
+    selectMany:
+      queryRootField: project_entitlement_catalog
+      subscription:
+        rootField: project_entitlement_catalog
+    selectUniques:
+      - queryRootField: project_entitlement_catalog_by_id
+        uniqueIdentifier:
+          - id
+        subscription:
+          rootField: project_entitlement_catalog_by_id
+    filterInputTypeName: project_entitlement_catalog_filter_input
+    aggregate:
+      queryRootField: project_entitlement_catalog_aggregate
+      subscription:
+        rootField: project_entitlement_catalog_aggregate
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: project_entitlement_catalog
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        allowSubscriptions: true
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: plan_entitlement_accesses
+  sourceType: project_entitlement_catalog
+  target:
+    model:
+      name: plan_entitlement_access
+      relationshipType: Array
+      aggregate:
+        aggregateExpression: plan_entitlement_access_agg_exp
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: entitlement_id
+  graphql:
+    aggregateFieldName: plan_entitlement_accesses_aggregate
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: project_entitlement_accesses
+  sourceType: project_entitlement_catalog
+  target:
+    model:
+      name: project_entitlement_access
+      relationshipType: Array
+      aggregate:
+        aggregateExpression: project_entitlement_access_agg_exp
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: entitlement_id
+  graphql:
+    aggregateFieldName: project_entitlement_accesses_aggregate
+

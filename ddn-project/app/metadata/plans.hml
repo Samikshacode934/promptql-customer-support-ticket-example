@@ -1,0 +1,189 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: plans
+  fields:
+    - name: created_at
+      type: timestamptz!
+    - name: id
+      type: uuid!
+    - name: name
+      type: text!
+    - name: updated_at
+      type: timestamptz!
+  graphql:
+    typeName: plans
+    inputTypeName: plans_input
+  dataConnectorTypeMapping:
+    - dataConnectorName: postgres
+      dataConnectorObjectType: plans
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: plans
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - created_at
+          - id
+          - name
+          - updated_at
+
+---
+kind: BooleanExpressionType
+version: v1
+definition:
+  name: plans_bool_exp
+  operand:
+    object:
+      type: plans
+      comparableFields:
+        - fieldName: created_at
+          booleanExpressionType: timestamptz_bool_exp
+        - fieldName: id
+          booleanExpressionType: uuid_bool_exp
+        - fieldName: name
+          booleanExpressionType: text_bool_exp
+        - fieldName: updated_at
+          booleanExpressionType: timestamptz_bool_exp
+      comparableRelationships:
+        - relationshipName: plan_entitlement_accesses
+        - relationshipName: project_plan_changelogs
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: true
+  graphql:
+    typeName: plans_bool_exp
+
+---
+kind: AggregateExpression
+version: v1
+definition:
+  name: plans_agg_exp
+  operand:
+    object:
+      aggregatedType: plans
+      aggregatableFields:
+        - fieldName: created_at
+          aggregateExpression: timestamptz_agg_exp
+        - fieldName: id
+          aggregateExpression: uuid_agg_exp
+        - fieldName: name
+          aggregateExpression: text_agg_exp
+        - fieldName: updated_at
+          aggregateExpression: timestamptz_agg_exp
+  count:
+    enable: true
+  graphql:
+    selectTypeName: plans_agg_exp
+
+---
+kind: OrderByExpression
+version: v1
+definition:
+  name: plans_order_by_exp
+  operand:
+    object:
+      orderedType: plans
+      orderableFields:
+        - fieldName: created_at
+          orderByExpression: timestamptz_order_by_exp
+        - fieldName: id
+          orderByExpression: uuid_order_by_exp
+        - fieldName: name
+          orderByExpression: text_order_by_exp
+        - fieldName: updated_at
+          orderByExpression: timestamptz_order_by_exp
+      orderableRelationships: []
+  graphql:
+    expressionTypeName: plans_order_by_exp
+
+---
+kind: Model
+version: v2
+definition:
+  name: plans
+  objectType: plans
+  source:
+    dataConnectorName: postgres
+    collection: plans
+  filterExpressionType: plans_bool_exp
+  aggregateExpression: plans_agg_exp
+  orderByExpression: plans_order_by_exp
+  graphql:
+    selectMany:
+      queryRootField: plans
+      subscription:
+        rootField: plans
+    selectUniques:
+      - queryRootField: plans_by_id
+        uniqueIdentifier:
+          - id
+        subscription:
+          rootField: plans_by_id
+    filterInputTypeName: plans_filter_input
+    aggregate:
+      queryRootField: plans_aggregate
+      subscription:
+        rootField: plans_aggregate
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: plans
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        allowSubscriptions: true
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: plan_entitlement_accesses
+  sourceType: plans
+  target:
+    model:
+      name: plan_entitlement_access
+      relationshipType: Array
+      aggregate:
+        aggregateExpression: plan_entitlement_access_agg_exp
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: plan_id
+  graphql:
+    aggregateFieldName: plan_entitlement_accesses_aggregate
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: project_plan_changelogs
+  sourceType: plans
+  target:
+    model:
+      name: project_plan_changelogs
+      relationshipType: Array
+      aggregate:
+        aggregateExpression: project_plan_changelogs_agg_exp
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: plan_id
+  graphql:
+    aggregateFieldName: project_plan_changelogs_aggregate
+

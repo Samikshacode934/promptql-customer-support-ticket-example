@@ -1,0 +1,203 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: support_user
+  fields:
+    - name: email
+      type: text
+    - name: id
+      type: int4!
+    - name: role
+      type: text
+  graphql:
+    typeName: support_user
+    inputTypeName: support_user_input
+  dataConnectorTypeMapping:
+    - dataConnectorName: postgres
+      dataConnectorObjectType: support_user
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: support_user
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - email
+          - id
+          - role
+
+---
+kind: BooleanExpressionType
+version: v1
+definition:
+  name: support_user_bool_exp
+  operand:
+    object:
+      type: support_user
+      comparableFields:
+        - fieldName: email
+          booleanExpressionType: text_bool_exp
+        - fieldName: id
+          booleanExpressionType: int4_bool_exp
+        - fieldName: role
+          booleanExpressionType: text_bool_exp
+      comparableRelationships:
+        - relationshipName: support_tickets
+        - relationshipName: support_tickets_by_requester_id
+        - relationshipName: support_ticket_comments
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: true
+  graphql:
+    typeName: support_user_bool_exp
+
+---
+kind: AggregateExpression
+version: v1
+definition:
+  name: support_user_agg_exp
+  operand:
+    object:
+      aggregatedType: support_user
+      aggregatableFields:
+        - fieldName: email
+          aggregateExpression: text_agg_exp
+        - fieldName: id
+          aggregateExpression: int4_agg_exp
+        - fieldName: role
+          aggregateExpression: text_agg_exp
+  count:
+    enable: true
+  graphql:
+    selectTypeName: support_user_agg_exp
+
+---
+kind: OrderByExpression
+version: v1
+definition:
+  name: support_user_order_by_exp
+  operand:
+    object:
+      orderedType: support_user
+      orderableFields:
+        - fieldName: email
+          orderByExpression: text_order_by_exp
+        - fieldName: id
+          orderByExpression: int4_order_by_exp
+        - fieldName: role
+          orderByExpression: text_order_by_exp
+      orderableRelationships: []
+  graphql:
+    expressionTypeName: support_user_order_by_exp
+
+---
+kind: Model
+version: v2
+definition:
+  name: support_user
+  objectType: support_user
+  source:
+    dataConnectorName: postgres
+    collection: support_user
+  filterExpressionType: support_user_bool_exp
+  aggregateExpression: support_user_agg_exp
+  orderByExpression: support_user_order_by_exp
+  graphql:
+    selectMany:
+      queryRootField: support_user
+      subscription:
+        rootField: support_user
+    selectUniques:
+      - queryRootField: support_user_by_id
+        uniqueIdentifier:
+          - id
+        subscription:
+          rootField: support_user_by_id
+    filterInputTypeName: support_user_filter_input
+    aggregate:
+      queryRootField: support_user_aggregate
+      subscription:
+        rootField: support_user_aggregate
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: support_user
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        allowSubscriptions: true
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: support_tickets
+  sourceType: support_user
+  target:
+    model:
+      name: support_ticket
+      relationshipType: Array
+      aggregate:
+        aggregateExpression: support_ticket_agg_exp
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: assignee_id
+  graphql:
+    aggregateFieldName: support_tickets_aggregate
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: support_tickets_by_requester_id
+  sourceType: support_user
+  target:
+    model:
+      name: support_ticket
+      relationshipType: Array
+      aggregate:
+        aggregateExpression: support_ticket_agg_exp
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: requester_id
+  graphql:
+    aggregateFieldName: support_tickets_by_requester_id_aggregate
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: support_ticket_comments
+  sourceType: support_user
+  target:
+    model:
+      name: support_ticket_comment
+      relationshipType: Array
+      aggregate:
+        aggregateExpression: support_ticket_comment_agg_exp
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: user_id
+  graphql:
+    aggregateFieldName: support_ticket_comments_aggregate
+
