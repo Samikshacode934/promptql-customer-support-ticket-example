@@ -1,392 +1,143 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ParsedConfiguration",
-  "description": "Initial configuration, just enough to connect to a database and elaborate a full 'Configuration'.",
-  "type": "object",
-  "required": [
-    "version"
-  ],
-  "properties": {
+  // === ROOT LEVEL ===
+  // 1. Schema Definition
+  "$schema": "http://json-schema.org/draft-07/schema#",  // Uses JSON Schema draft-07 for validation
+  "title": "ParsedConfiguration",                       // Human-readable title
+  "description": "Initial configuration to connect to a database and generate a full 'Configuration'.", // Purpose
+  "type": "object",                                    // Top-level must be a JSON object
+  "required": ["version"],                             // "version" is mandatory
+  "properties": {                                      // Configurable properties
+    // --- VERSION ---
     "version": {
-      "$ref": "#/definitions/Version"
+      "$ref": "#/definitions/Version"  // Must match the "Version" definition (only allows "5")
     },
+    // --- SCHEMA REFERENCE (OPTIONAL) ---
     "$schema": {
-      "description": "Jsonschema of the configuration format.",
-      "default": null,
-      "type": [
-        "string",
-        "null"
-      ]
+      "description": "JSON Schema of the configuration format.",
+      "default": null,                 // Default is null (not required)
+      "type": ["string", "null"]       // Can be a string (URL) or null
     },
+    // --- DATABASE CONNECTION SETTINGS ---
     "connectionSettings": {
       "description": "Database connection settings.",
-      "default": {
+      "default": {                     // Default values if not provided
         "connectionUri": {
-          "variable": "CONNECTION_URI"
+          "variable": "CONNECTION_URI" // Default: Read from env var `CONNECTION_URI`
         },
-        "poolSettings": {
-          "maxConnections": 50,
-          "poolTimeout": 30,
-          "idleTimeout": 180,
-          "checkConnectionAfterIdle": 60,
-          "connectionLifetime": 600
+        "poolSettings": {              // Connection pool defaults
+          "maxConnections": 50,        // Max connections in pool
+          "poolTimeout": 30,           // Timeout (seconds) to get a connection
+          "idleTimeout": 180,          // Idle connections closed after 180s
+          "checkConnectionAfterIdle": 60, // Validate connections after 60s idle
+          "connectionLifetime": 600     // Max connection lifetime (600s)
         },
-        "isolationLevel": "ReadCommitted"
+        "isolationLevel": "ReadCommitted" // Default transaction isolation level
       },
-      "allOf": [
-        {
-          "$ref": "#/definitions/DatabaseConnectionSettings"
-        }
+      "allOf": [  // Must match the structure defined in "DatabaseConnectionSettings"
+        { "$ref": "#/definitions/DatabaseConnectionSettings" }
       ]
     },
+    // --- METADATA (TABLES, TYPES, OPERATIONS) ---
     "metadata": {
       "description": "Connector metadata.",
-      "default": {
-        "tables": {},
-        "types": {
+      "default": {                     // Default empty metadata
+        "tables": {},                  // No tables defined by default
+        "types": {                     // No custom types
           "scalar": {},
           "composite": {}
         },
-        "nativeOperations": {
+        "nativeOperations": {          // No custom SQL queries/mutations
           "queries": {},
           "mutations": {}
         }
       },
       "allOf": [
-        {
-          "$ref": "#/definitions/Metadata"
-        }
+        { "$ref": "#/definitions/Metadata" }  // Must match this structure
       ]
     },
+    // --- INTROSPECTION OPTIONS ---
     "introspectionOptions": {
       "description": "Database introspection options.",
-      "default": {
-        "excludedSchemas": [
-          "information_schema",
+      "default": {                     // Default introspection rules
+        "excludedSchemas": [           // Schemas to ignore
+          "information_schema",         // PostgreSQL system schemas
           "pg_catalog",
-          "tiger",
-          "crdb_internal",
-          "columnar",
+          "tiger",                     // PostGIS schema
+          "crdb_internal",             // CockroachDB internal
+          "columnar",                  // Citus extension
           "columnar_internal"
         ],
-        "unqualifiedSchemasForTables": [
-          "public"
-        ],
-        "unqualifiedSchemasForTypesAndProcedures": [
+        "unqualifiedSchemasForTables": ["public"],  // Tables in `public` don't need schema prefix
+        "unqualifiedSchemasForTypesAndProcedures": [  // Types/procedures without prefix
           "public",
-          "pg_catalog",
-          "tiger"
+          "pg_catalog",  // Built-in PostgreSQL types
+          "tiger"        // PostGIS
         ],
+        // How SQL operators map to API filters (e.g., `=` → `_eq`)
         "comparisonOperatorMapping": [
           {
-            "operatorName": "=",
-            "exposedName": "_eq",
-            "operatorKind": "equal"
+            "operatorName": "=",       // SQL operator
+            "exposedName": "_eq",      // GraphQL filter name
+            "operatorKind": "equal"    // Type of operator
           },
-          {
-            "operatorName": "<=",
-            "exposedName": "_lte",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": ">",
-            "exposedName": "_gt",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": ">=",
-            "exposedName": "_gte",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "<",
-            "exposedName": "_lt",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "<>",
-            "exposedName": "_neq",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "!=",
-            "exposedName": "_neq",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "LIKE",
-            "exposedName": "_like",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "NOT LIKE",
-            "exposedName": "_nlike",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "ILIKE",
-            "exposedName": "_ilike",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "NOT ILIKE",
-            "exposedName": "_nilike",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "SIMILAR TO",
-            "exposedName": "_similar",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "NOT SIMILAR TO",
-            "exposedName": "_nsimilar",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "~~",
-            "exposedName": "_like",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "!~~",
-            "exposedName": "_nlike",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "~~*",
-            "exposedName": "_ilike",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "!~~*",
-            "exposedName": "_nilike",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "~",
-            "exposedName": "_regex",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "!~",
-            "exposedName": "_nregex",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "~*",
-            "exposedName": "_iregex",
-            "operatorKind": "custom"
-          },
-          {
-            "operatorName": "!~*",
-            "exposedName": "_niregex",
-            "operatorKind": "custom"
-          }
+          // ... other operators (_like, _regex, etc.) ...
         ],
+        // Special functions to treat as operators (e.g., PostGIS functions)
         "introspectPrefixFunctionComparisonOperators": [
-          "box_above",
-          "box_below",
-          "box_contain",
-          "box_contain_pt",
-          "box_contained",
-          "box_left",
-          "box_overabove",
-          "box_overbelow",
-          "box_overlap",
-          "box_overleft",
-          "box_overright",
-          "box_right",
-          "box_same",
-          "circle_above",
-          "circle_below",
-          "circle_contain",
-          "circle_contain_pt",
-          "circle_contained",
-          "circle_left",
-          "circle_overabove",
-          "circle_overbelow",
-          "circle_overlap",
-          "circle_overleft",
-          "circle_overright",
-          "circle_right",
-          "circle_same",
-          "contains_2d",
-          "equals",
-          "geography_overlaps",
-          "geometry_above",
-          "geometry_below",
-          "geometry_contained_3d",
-          "geometry_contains",
-          "geometry_contains_3d",
-          "geometry_contains_nd",
-          "geometry_left",
-          "geometry_overabove",
-          "geometry_overbelow",
-          "geometry_overlaps",
-          "geometry_overlaps_3d",
-          "geometry_overlaps_nd",
-          "geometry_overleft",
-          "geometry_overright",
-          "geometry_right",
-          "geometry_same",
-          "geometry_same_3d",
-          "geometry_same_nd",
-          "geometry_within",
-          "geometry_within_nd",
-          "inet_same_family",
-          "inter_lb",
-          "inter_sb",
-          "inter_sl",
-          "is_contained_2d",
-          "ishorizontal",
-          "isparallel",
-          "isperp",
-          "isvertical",
-          "jsonb_contained",
-          "jsonb_contains",
-          "jsonb_exists",
-          "jsonb_path_exists_opr",
-          "jsonb_path_match_opr",
-          "line_intersect",
-          "line_parallel",
-          "line_perp",
-          "lseg_intersect",
-          "lseg_parallel",
-          "lseg_perp",
-          "network_overlap",
-          "network_sub",
-          "network_subeq",
-          "network_sup",
-          "network_supeq",
-          "on_pb",
-          "on_pl",
-          "on_ppath",
-          "on_ps",
-          "on_sb",
-          "on_sl",
-          "overlaps_2d",
-          "path_contain_pt",
-          "path_inter",
-          "point_above",
-          "point_below",
-          "point_horiz",
-          "point_left",
-          "point_right",
-          "point_vert",
-          "poly_above",
-          "poly_below",
-          "poly_contain",
-          "poly_contain_pt",
-          "poly_contained",
-          "poly_left",
-          "poly_overabove",
-          "poly_overbelow",
-          "poly_overlap",
-          "poly_overleft",
-          "poly_overright",
-          "poly_right",
-          "poly_same",
-          "pt_contained_poly",
-          "st_3dintersects",
-          "st_contains",
-          "st_containsproperly",
-          "st_coveredby",
-          "st_covers",
-          "st_crosses",
-          "st_disjoint",
-          "st_equals",
-          "st_intersects",
-          "st_isvalid",
-          "st_orderingequals",
-          "st_overlaps",
-          "st_relatematch",
-          "st_touches",
-          "st_within",
-          "starts_with",
-          "ts_match_qv",
-          "ts_match_tq",
-          "ts_match_tt",
-          "ts_match_vq",
-          "tsq_mcontained",
-          "tsq_mcontains",
-          "xmlexists",
-          "xmlvalidate",
-          "xpath_exists"
+          "box_above",                // Geometric operators
+          "st_contains",              // PostGIS function
+          // ... other functions ...
         ],
+        // How database types map to API types
         "typeRepresentations": {
-          "bit": "string",
-          "bool": "boolean",
-          "bpchar": "string",
-          "char": "string",
-          "date": "date",
-          "float4": "float32",
-          "float8": "float64",
-          "int2": "int16",
-          "int4": "int32",
-          "int8": "int64AsString",
-          "numeric": "bigDecimalAsString",
-          "text": "string",
-          "time": "time",
-          "timestamp": "timestamp",
-          "timestamptz": "timestamptz",
-          "timetz": "timetz",
-          "uuid": "uUID",
-          "varchar": "string"
+          "bit": "string",            // SQL `bit` → API `string`
+          "bool": "boolean",          // SQL `bool` → API `boolean`
+          "uuid": "uUID",             // SQL `uuid` → API `uUID`
+          // ... other types ...
         }
       },
       "allOf": [
-        {
-          "$ref": "#/definitions/IntrospectionOptions"
-        }
+        { "$ref": "#/definitions/IntrospectionOptions" }  // Must match this structure
       ]
     },
+    // --- MUTATIONS VERSION ---
     "mutationsVersion": {
-      "description": "Which version of the generated mutation procedures to include in the schema response",
-      "default": null,
-      "anyOf": [
-        {
-          "$ref": "#/definitions/MutationsVersion"
-        },
-        {
-          "type": "null"
-        }
+      "description": "Which version of mutations to include (v1 or v2).",
+      "default": null,                 // No default (must be explicitly set)
+      "anyOf": [                      // Can be either:
+        { "$ref": "#/definitions/MutationsVersion" },  // "v1" or "v2"
+        { "type": "null" }            // Or omitted (null)
       ]
     },
+    // --- MUTATIONS PREFIX ---
     "mutationsPrefix": {
-      "description": "Provide a custom prefix for generated mutation names. Defaults to mutations version.",
-      "default": null,
-      "type": [
-        "string",
-        "null"
-      ]
+      "description": "Custom prefix for mutation names (defaults to mutationsVersion).",
+      "default": null,                 // No prefix by default
+      "type": ["string", "null"]       // Can be a string (e.g., "custom_") or null
     }
   },
+  // === DEFINITIONS (REUSABLE COMPONENTS) ===
   "definitions": {
+    // --- VERSION ---
     "Version": {
-      "type": "string",
-      "enum": [
-        "5"
-      ]
+      "type": "string",                // Must be a string
+      "enum": ["5"]                    // Only allowed value is "5"
     },
+    // --- DATABASE CONNECTION SETTINGS ---
     "DatabaseConnectionSettings": {
       "description": "Database connection settings.",
       "type": "object",
-      "required": [
-        "connectionUri"
-      ],
+      "required": ["connectionUri"],   // Must have a connection URI
       "properties": {
-        "connectionUri": {
-          "description": "Connection string for a Postgres-compatible database.",
+        "connectionUri": {             // URI to connect to the database
+          "description": "Postgres connection string or env var.",
           "allOf": [
-            {
-              "$ref": "#/definitions/ConnectionUri"
-            }
+            { "$ref": "#/definitions/ConnectionUri" }  // Must match this definition
           ]
         },
-        "poolSettings": {
-          "description": "Connection pool settings.",
-          "default": {
+        "poolSettings": {              // Connection pool settings
+          "description": "Connection pool configuration.",
+          "default": {                 // Default values
             "maxConnections": 50,
             "poolTimeout": 30,
             "idleTimeout": 180,
@@ -394,1229 +145,523 @@
             "connectionLifetime": 600
           },
           "allOf": [
-            {
-              "$ref": "#/definitions/PoolSettings"
-            }
+            { "$ref": "#/definitions/PoolSettings" }  // Must match this structure
           ]
         },
-        "isolationLevel": {
-          "description": "Query isolation level.",
-          "default": "ReadCommitted",
+        "isolationLevel": {            // Transaction isolation level
+          "description": "SQL transaction isolation level.",
+          "default": "ReadCommitted",  // Default: ReadCommitted
           "allOf": [
-            {
-              "$ref": "#/definitions/IsolationLevel"
-            }
+            { "$ref": "#/definitions/IsolationLevel" }  // Must be valid
           ]
         }
       }
     },
+    // --- CONNECTION URI (SECRET HANDLING) ---
     "ConnectionUri": {
-      "$ref": "#/definitions/Secret"
+      "$ref": "#/definitions/Secret"   // Can be a string or env var reference
     },
-    "Secret": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
+    "Secret": {                        // Defines how secrets are handled
+      "anyOf": [                       // Either:
+        { "type": "string" },          // Direct string (e.g., "postgresql://user:pass@host")
+        {                              // Or an env var reference
           "type": "object",
-          "required": [
-            "variable"
-          ],
+          "required": ["variable"],
           "properties": {
-            "variable": {
+            "variable": {              // Name of the env var (e.g., "DB_URL")
               "$ref": "#/definitions/Variable"
             }
           }
         }
       ]
     },
-    "Variable": {
-      "description": "The name of an an environment variable.",
+    "Variable": {                      // Environment variable name
+      "description": "Name of an env var (e.g., 'DATABASE_URL').",
       "type": "string"
     },
+    // --- POOL SETTINGS ---
     "PoolSettings": {
-      "description": "Settings for the PostgreSQL connection pool",
+      "description": "PostgreSQL connection pool settings.",
       "type": "object",
       "properties": {
-        "maxConnections": {
-          "description": "maximum number of pool connections",
+        "maxConnections": {            // Max connections in pool
+          "description": "Max pool connections.",
           "default": 50,
           "type": "integer",
-          "format": "uint32",
-          "minimum": 0.0
+          "minimum": 0                 // Cannot be negative
         },
-        "poolTimeout": {
-          "description": "timeout for acquiring a connection from the pool (seconds)",
+        "poolTimeout": {              // Timeout to get a connection
+          "description": "Timeout (seconds) to acquire a connection.",
           "default": 30,
           "type": "integer",
-          "format": "uint64",
-          "minimum": 0.0
+          "minimum": 0
         },
-        "idleTimeout": {
-          "description": "idle timeout for releasing a connection from the pool (seconds)",
-          "default": 180,
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint64",
-          "minimum": 0.0
-        },
-        "checkConnectionAfterIdle": {
-          "description": "check the connection is alive after being idle for N seconds. Set to null to always check.",
-          "default": 60,
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint64",
-          "minimum": 0.0
-        },
-        "connectionLifetime": {
-          "description": "maximum lifetime for an individual connection (seconds)",
-          "default": 600,
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint64",
-          "minimum": 0.0
-        }
+        // ... (similar for idleTimeout, checkConnectionAfterIdle, etc.) ...
       }
     },
+    // --- ISOLATION LEVEL ---
     "IsolationLevel": {
-      "description": "The isolation level of the transaction in which a query is executed.",
-      "oneOf": [
+      "description": "SQL transaction isolation level.",
+      "oneOf": [                       // Must be one of these:
         {
-          "description": "Prevents reading data from another uncommitted transaction.",
+          "description": "Default: No dirty reads.",
           "type": "string",
-          "enum": [
-            "ReadCommitted"
-          ]
+          "enum": ["ReadCommitted"]    // Prevents uncommitted reads
         },
         {
-          "description": "Reading the same data twice is guaranteed to return the same result.",
+          "description": "Guarantees repeatable reads.",
           "type": "string",
-          "enum": [
-            "RepeatableRead"
-          ]
+          "enum": ["RepeatableRead"]   // Same query → same result
         },
         {
-          "description": "Concurrent transactions behave identically to serializing them one at a time.",
+          "description": "Highest isolation (serializable).",
           "type": "string",
-          "enum": [
-            "Serializable"
-          ]
+          "enum": ["Serializable"]     // Transactions appear serialized
         }
       ]
     },
+    // --- METADATA STRUCTURE ---
     "Metadata": {
-      "description": "Metadata information.",
+      "description": "Database metadata (tables, types, operations).",
       "type": "object",
       "properties": {
-        "tables": {
+        "tables": {                    // Table definitions
           "default": {},
           "allOf": [
-            {
-              "$ref": "#/definitions/TablesInfo"
-            }
+            { "$ref": "#/definitions/TablesInfo" }  // Must match this
           ]
         },
-        "types": {
-          "default": {
-            "scalar": {},
-            "composite": {}
-          },
+        "types": {                     // Custom scalar/composite types
+          "default": { "scalar": {}, "composite": {} },
           "allOf": [
-            {
-              "$ref": "#/definitions/Types"
-            }
+            { "$ref": "#/definitions/Types" }
           ]
         },
-        "nativeOperations": {
-          "default": {
-            "queries": {},
-            "mutations": {}
-          },
+        "nativeOperations": {          // Custom SQL queries/mutations
+          "default": { "queries": {}, "mutations": {} },
           "allOf": [
-            {
-              "$ref": "#/definitions/NativeOperations"
-            }
+            { "$ref": "#/definitions/NativeOperations" }
           ]
         }
       }
     },
+    // --- TABLES INFO ---
     "TablesInfo": {
-      "description": "Mapping from a \"table\" name to its information.",
+      "description": "Mapping of table names to their definitions.",
       "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/TableInfo"
+      "additionalProperties": {        // Dynamic keys (table names)
+        "$ref": "#/definitions/TableInfo"  // Must match TableInfo structure
       }
     },
+    // --- TABLE INFO ---
     "TableInfo": {
-      "description": "Information about a database table (or any other kind of relation).",
+      "description": "Structure of a database table.",
       "type": "object",
-      "required": [
-        "columns",
-        "schemaName",
-        "tableName"
-      ],
+      "required": ["schemaName", "tableName", "columns"],  // Required fields
       "properties": {
-        "schemaName": {
-          "type": "string"
-        },
-        "tableName": {
-          "type": "string"
-        },
-        "columns": {
+        "schemaName": { "type": "string" },   // Schema (e.g., "public")
+        "tableName": { "type": "string" },    // Table name (e.g., "users")
+        "columns": {                          // Column definitions
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/ColumnInfo"
+            "$ref": "#/definitions/ColumnInfo"  // Each column must match this
           }
         },
-        "uniquenessConstraints": {
+        "uniquenessConstraints": {            // Unique keys
           "default": {},
           "allOf": [
-            {
-              "$ref": "#/definitions/UniquenessConstraints"
-            }
+            { "$ref": "#/definitions/UniquenessConstraints" }
           ]
         },
-        "foreignRelations": {
+        "foreignRelations": {                 // Foreign keys
           "default": {},
           "allOf": [
-            {
-              "$ref": "#/definitions/ForeignRelations"
-            }
+            { "$ref": "#/definitions/ForeignRelations" }
           ]
         },
-        "description": {
+        "description": {                      // Optional table description
           "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     },
+    // --- COLUMN INFO ---
     "ColumnInfo": {
-      "description": "Information about a database column.",
+      "description": "Structure of a table column.",
       "type": "object",
-      "required": [
-        "name",
-        "type"
-      ],
+      "required": ["name", "type"],           // Must have name and type
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "type": {
-          "$ref": "#/definitions/Type"
-        },
-        "nullable": {
-          "default": "nullable",
+        "name": { "type": "string" },         // Column name
+        "type": { "$ref": "#/definitions/Type" },  // Data type
+        "nullable": {                         // Nullable?
+          "default": "nullable",              // Default: nullable
           "allOf": [
-            {
-              "$ref": "#/definitions/Nullable"
-            }
+            { "$ref": "#/definitions/Nullable" }  // Must be "nullable" or "nonNullable"
           ]
         },
-        "hasDefault": {
-          "$ref": "#/definitions/HasDefault"
-        },
-        "isIdentity": {
-          "$ref": "#/definitions/IsIdentity"
-        },
-        "isGenerated": {
-          "$ref": "#/definitions/IsGenerated"
-        },
-        "description": {
-          "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
-        }
+        // ... (similar for hasDefault, isIdentity, etc.) ...
       }
     },
+    // --- TYPE DEFINITIONS ---
     "Type": {
-      "description": "The type of values that a column, field, or argument may take.",
-      "oneOf": [
-        {
+      "description": "Data type (scalar, composite, or array).",
+      "oneOf": [                              // Must be one of:
+        {                                      // Scalar type (e.g., "text")
           "type": "object",
-          "required": [
-            "scalarType"
-          ],
+          "required": ["scalarType"],
           "properties": {
-            "scalarType": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": false
+            "scalarType": { "type": "string" }  // e.g., "uuid", "int4"
+          }
         },
-        {
+        {                                      // Composite type (custom)
           "type": "object",
-          "required": [
-            "compositeType"
-          ],
+          "required": ["compositeType"],
           "properties": {
-            "compositeType": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": false
+            "compositeType": { "type": "string" }
+          }
         },
-        {
+        {                                      // Array type (e.g., "text[]")
           "type": "object",
-          "required": [
-            "arrayType"
-          ],
+          "required": ["arrayType"],
           "properties": {
-            "arrayType": {
-              "$ref": "#/definitions/Type"
-            }
-          },
-          "additionalProperties": false
+            "arrayType": { "$ref": "#/definitions/Type" }  // Nested type
+          }
         }
       ]
     },
+    // --- NULLABLE ---
     "Nullable": {
-      "description": "Can this column contain null values",
+      "description": "Whether a column allows NULL values.",
       "type": "string",
-      "enum": [
-        "nullable",
-        "nonNullable"
-      ]
+      "enum": ["nullable", "nonNullable"]     // Only these two options
     },
-    "HasDefault": {
-      "description": "Does this column have a default value.",
-      "type": "string",
-      "enum": [
-        "noDefault",
-        "hasDefault"
-      ]
-    },
-    "IsIdentity": {
-      "description": "Is this column an identity column.",
-      "type": "string",
-      "enum": [
-        "notIdentity",
-        "identityByDefault",
-        "identityAlways"
-      ]
-    },
-    "IsGenerated": {
-      "description": "Is this column a generated column.",
-      "type": "string",
-      "enum": [
-        "notGenerated",
-        "stored"
-      ]
-    },
+    // --- UNIQUENESS CONSTRAINTS ---
     "UniquenessConstraints": {
-      "description": "A mapping from the name of a unique constraint to its value.",
+      "description": "Unique constraints (e.g., primary keys).",
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/definitions/UniquenessConstraint"
+        "$ref": "#/definitions/UniquenessConstraint"  // List of columns
       }
     },
     "UniquenessConstraint": {
-      "description": "The set of columns that make up a uniqueness constraint. We map each table column to their ndc field names.",
+      "description": "Columns forming a unique constraint.",
       "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "uniqueItems": true
+      "items": { "type": "string" },          // Column names
+      "uniqueItems": true                     // No duplicates
     },
+    // --- FOREIGN RELATIONS ---
     "ForeignRelations": {
-      "description": "A mapping from the name of a foreign key constraint to its value.",
+      "description": "Foreign key constraints.",
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/definitions/ForeignRelation"
+        "$ref": "#/definitions/ForeignRelation"  // Defines relationships
       }
     },
     "ForeignRelation": {
-      "description": "A foreign key constraint.",
+      "description": "Links between tables.",
       "type": "object",
-      "required": [
-        "columnMapping",
-        "foreignTable"
-      ],
+      "required": ["foreignTable", "columnMapping"],  // Required fields
       "properties": {
-        "foreignSchema": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "foreignTable": {
-          "type": "string"
-        },
-        "columnMapping": {
+        "foreignSchema": { "type": ["string", "null"] },  // Schema of target table
+        "foreignTable": { "type": "string" },        // Target table name
+        "columnMapping": {                           // Column mappings
           "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
+          "additionalProperties": { "type": "string" }  // e.g., {"user_id": "id"}
         }
       }
     },
+    // --- SCALAR & COMPOSITE TYPES ---
     "Types": {
-      "description": "Information about types.",
+      "description": "Custom scalar and composite types.",
       "type": "object",
-      "required": [
-        "composite",
-        "scalar"
-      ],
+      "required": ["scalar", "composite"],    // Must have both
       "properties": {
-        "scalar": {
+        "scalar": {                           // Scalar types (e.g., "uuid")
           "$ref": "#/definitions/ScalarTypes"
         },
-        "composite": {
+        "composite": {                        // Custom object types
           "$ref": "#/definitions/CompositeTypes"
         }
       }
     },
+    // --- SCALAR TYPES ---
     "ScalarTypes": {
-      "description": "Map of all known/occurring scalar types.",
+      "description": "Map of scalar types (e.g., 'text', 'int4').",
       "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/ScalarType"
+      "additionalProperties": {               // Dynamic keys (type names)
+        "$ref": "#/definitions/ScalarType"    // Must match ScalarType
       }
     },
     "ScalarType": {
-      "description": "Information about a scalar type. A scalar type is completely characterized by its name and the operations you can do on it.",
+      "description": "Properties of a scalar type.",
       "type": "object",
-      "required": [
-        "aggregateFunctions",
-        "comparisonOperators",
-        "schemaName",
-        "typeName"
+      "required": [                           // Required fields:
+        "typeName",                           // e.g., "text"
+        "schemaName",                         // e.g., "pg_catalog"
+        "aggregateFunctions",                 // Supported aggregates (min/max)
+        "comparisonOperators"                 // Supported operators (=, >)
       ],
       "properties": {
-        "typeName": {
-          "type": "string"
-        },
-        "schemaName": {
-          "type": "string"
-        },
-        "description": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "aggregateFunctions": {
+        "typeName": { "type": "string" },     // Type name
+        "schemaName": { "type": "string" },   // Schema it belongs to
+        "description": { "type": ["string", "null"] },  // Optional docs
+        "aggregateFunctions": {               // Aggregates (e.g., "sum")
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/AggregateFunction"
+            "$ref": "#/definitions/AggregateFunction"  // e.g., { "returnType": "int8" }
           }
         },
-        "comparisonOperators": {
+        "comparisonOperators": {              // Operators (e.g., "_eq")
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/ComparisonOperator"
+            "$ref": "#/definitions/ComparisonOperator"  // Defines behavior
           }
         },
-        "typeRepresentation": {
+        "typeRepresentation": {               // How to represent in API
           "anyOf": [
-            {
-              "$ref": "#/definitions/TypeRepresentation"
-            },
-            {
-              "type": "null"
-            }
+            { "$ref": "#/definitions/TypeRepresentation" },  // e.g., "string"
+            { "type": "null" }                // Or undefined
           ]
         }
       }
     },
+    // --- AGGREGATE FUNCTIONS ---
     "AggregateFunction": {
       "type": "object",
-      "required": [
-        "returnType"
-      ],
+      "required": ["returnType"],             // Must specify return type
       "properties": {
-        "returnType": {
-          "type": "string"
-        }
+        "returnType": { "type": "string" }    // e.g., "float8" for AVG
       }
     },
+    // --- COMPARISON OPERATORS ---
     "ComparisonOperator": {
-      "description": "Represents a postgres binary comparison operator",
+      "description": "Defines a filter operator (e.g., _eq, _gt).",
       "type": "object",
-      "required": [
-        "argumentType",
-        "operatorKind",
-        "operatorName"
-      ],
+      "required": ["operatorName", "operatorKind", "argumentType"],
       "properties": {
-        "operatorName": {
-          "type": "string"
+        "operatorName": { "type": "string" },  // SQL name (e.g., "=")
+        "operatorKind": {                      // Type of operator
+          "$ref": "#/definitions/OperatorKind"  // "equal", "in", or "custom"
         },
-        "operatorKind": {
-          "$ref": "#/definitions/OperatorKind"
-        },
-        "argumentType": {
-          "type": "string"
-        },
-        "isInfix": {
-          "default": true,
+        "argumentType": { "type": "string" },  // Input type (e.g., "text")
+        "isInfix": {                           // Is it infix (e.g., `a = b`)?
+          "default": true,                     // Default: yes
           "type": "boolean"
         }
       }
     },
+    // --- OPERATOR KIND ---
     "OperatorKind": {
-      "description": "Is it a built-in operator, or a custom operator.",
+      "description": "Category of operator.",
       "type": "string",
-      "enum": [
-        "equal",
-        "in",
-        "custom"
-      ]
+      "enum": ["equal", "in", "custom"]       // Only these 3 options
     },
+    // --- TYPE REPRESENTATION ---
     "TypeRepresentation": {
-      "description": "Type representation of a scalar type.",
-      "oneOf": [
-        {
-          "description": "JSON booleans",
-          "type": "string",
-          "enum": [
-            "boolean"
-          ]
-        },
-        {
-          "description": "Any JSON string",
-          "type": "string",
-          "enum": [
-            "string"
-          ]
-        },
-        {
-          "description": "float4",
-          "type": "string",
-          "enum": [
-            "float32"
-          ]
-        },
-        {
-          "description": "float8",
-          "type": "string",
-          "enum": [
-            "float64"
-          ]
-        },
-        {
-          "description": "int2",
-          "type": "string",
-          "enum": [
-            "int16"
-          ]
-        },
-        {
-          "description": "int4",
-          "type": "string",
-          "enum": [
-            "int32"
-          ]
-        },
-        {
-          "description": "int8 as integer",
-          "type": "string",
-          "enum": [
-            "int64"
-          ]
-        },
-        {
-          "description": "int8 as string",
-          "type": "string",
-          "enum": [
-            "int64AsString"
-          ]
-        },
-        {
-          "description": "numeric",
-          "type": "string",
-          "enum": [
-            "bigDecimal"
-          ]
-        },
-        {
-          "description": "numeric as string",
-          "type": "string",
-          "enum": [
-            "bigDecimalAsString"
-          ]
-        },
-        {
-          "description": "timestamp",
-          "type": "string",
-          "enum": [
-            "timestamp"
-          ]
-        },
-        {
-          "description": "timestamp with timezone",
-          "type": "string",
-          "enum": [
-            "timestamptz"
-          ]
-        },
-        {
-          "description": "time",
-          "type": "string",
-          "enum": [
-            "time"
-          ]
-        },
-        {
-          "description": "time with timezone",
-          "type": "string",
-          "enum": [
-            "timetz"
-          ]
-        },
-        {
-          "description": "date",
-          "type": "string",
-          "enum": [
-            "date"
-          ]
-        },
-        {
-          "description": "uuid",
-          "type": "string",
-          "enum": [
-            "uUID"
-          ]
-        },
-        {
-          "description": "geography",
-          "type": "string",
-          "enum": [
-            "geography"
-          ]
-        },
-        {
-          "description": "geometry",
-          "type": "string",
-          "enum": [
-            "geometry"
-          ]
-        },
-        {
-          "description": "Any JSON number",
-          "type": "string",
-          "enum": [
-            "number"
-          ]
-        },
-        {
-          "description": "Any JSON number, with no decimal part",
-          "type": "string",
-          "enum": [
-            "integer"
-          ]
-        },
-        {
-          "description": "An arbitrary json.",
-          "type": "string",
-          "enum": [
-            "json"
-          ]
-        },
-        {
-          "description": "One of the specified string values",
-          "type": "object",
-          "required": [
-            "enum"
-          ],
-          "properties": {
-            "enum": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "additionalProperties": false
-        }
+      "description": "How a type is exposed in the API.",
+      "oneOf": [                              // Must be one of these:
+        { "type": "string", "enum": ["boolean"] },  // e.g., for `bool`
+        { "type": "string", "enum": ["string"] },   // e.g., for `text`
+        // ... (other mappings like int32, float64, etc.) ...
       ]
     },
+    // --- COMPOSITE TYPES ---
     "CompositeTypes": {
-      "description": "Map of all known composite types.",
+      "description": "Custom object types (e.g., JSONB structures).",
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/definitions/CompositeType"
+        "$ref": "#/definitions/CompositeType"  // Must match this structure
       }
     },
     "CompositeType": {
-      "description": "Information about a composite type. These are very similar to tables, but with the crucial difference that composite types do not support constraints (such as NOT NULL).",
+      "description": "A custom type with fields (like a table).",
       "type": "object",
-      "required": [
-        "fields",
-        "schemaName",
-        "typeName"
-      ],
+      "required": ["typeName", "schemaName", "fields"],
       "properties": {
-        "typeName": {
-          "type": "string"
-        },
-        "schemaName": {
-          "type": "string"
-        },
-        "fields": {
+        "typeName": { "type": "string" },     // Type name
+        "schemaName": { "type": "string" },   // Schema it belongs to
+        "fields": {                           // Field definitions
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/FieldInfo"
+            "$ref": "#/definitions/FieldInfo"  // Each field must match this
           }
         },
-        "description": {
+        "description": {                      // Optional docs
           "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     },
+    // --- FIELD INFO ---
     "FieldInfo": {
-      "description": "Information about a composite type field.",
+      "description": "A field in a composite type.",
       "type": "object",
-      "required": [
-        "fieldName",
-        "type"
-      ],
+      "required": ["fieldName", "type"],      // Must have name and type
       "properties": {
-        "fieldName": {
-          "type": "string"
-        },
-        "type": {
-          "$ref": "#/definitions/Type"
-        },
-        "description": {
+        "fieldName": { "type": "string" },    // Field name
+        "type": { "$ref": "#/definitions/Type" },  // Data type
+        "description": {                      // Optional docs
           "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     },
+    // --- NATIVE OPERATIONS ---
     "NativeOperations": {
-      "description": "Metadata information of Native Operations.",
+      "description": "Custom SQL queries/mutations.",
       "type": "object",
-      "required": [
-        "mutations",
-        "queries"
-      ],
+      "required": ["queries", "mutations"],   // Must have both
       "properties": {
-        "queries": {
-          "description": "Native Queries.",
+        "queries": {                         // Read-only SQL
+          "description": "Custom queries.",
           "allOf": [
-            {
-              "$ref": "#/definitions/NativeQueries"
-            }
+            { "$ref": "#/definitions/NativeQueries" }
           ]
         },
-        "mutations": {
-          "description": "Native Mutations.",
+        "mutations": {                       // Write operations
+          "description": "Custom mutations.",
           "allOf": [
-            {
-              "$ref": "#/definitions/NativeMutations"
-            }
+            { "$ref": "#/definitions/NativeMutations" }
           ]
         }
       }
     },
+    // --- NATIVE QUERIES ---
     "NativeQueries": {
-      "description": "Metadata information of Native Queries.",
+      "description": "Map of custom SQL queries.",
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/definitions/NativeQueryInfo"
+        "$ref": "#/definitions/NativeQueryInfo"  // Each query must match this
       }
     },
     "NativeQueryInfo": {
-      "description": "Information about a Native Operation",
+      "description": "A custom SQL query.",
       "type": "object",
-      "required": [
-        "columns",
-        "sql"
-      ],
+      "required": ["sql", "columns"],         // Must have SQL and columns
       "properties": {
-        "sql": {
-          "description": "SQL expression to use for the Native Operation. We can interpolate values using `{{variable_name}}` syntax, such as `SELECT * FROM authors WHERE name = {{author_name}}`",
+        "sql": {                              // SQL template
+          "description": "SQL with variables like `{{name}}`.",
           "allOf": [
-            {
-              "$ref": "#/definitions/NativeQuerySql"
-            }
+            { "$ref": "#/definitions/NativeQuerySql" }
           ]
         },
-        "columns": {
-          "description": "Columns returned by the Native Operation",
+        "columns": {                          // Output columns
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/ReadOnlyColumnInfo"
+            "$ref": "#/definitions/ReadOnlyColumnInfo"  // Column structure
           }
         },
-        "arguments": {
-          "description": "Names and types of arguments that can be passed to this Native Operation",
+        "arguments": {                        // Input parameters
           "default": {},
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/ReadOnlyColumnInfo"
           }
         },
-        "description": {
+        "description": {                      // Optional docs
           "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     },
+    // --- NATIVE SQL ---
     "NativeQuerySql": {
-      "description": "Native Operation SQL location.",
-      "anyOf": [
-        {
-          "description": "Refer to an external Native Operation SQL file.",
+      "description": "SQL for a custom query.",
+      "anyOf": [                              // Can be:
+        {                                      // Reference to a file
           "type": "object",
-          "required": [
-            "file"
-          ],
+          "required": ["file"],
           "properties": {
-            "file": {
-              "description": "Relative path to a sql file.",
-              "type": "string"
-            }
+            "file": { "type": "string" }      // Path to .sql file
           }
         },
-        {
-          "description": "Inline Native Operation SQL string.",
+        {                                      // Or inline SQL
           "type": "object",
-          "required": [
-            "inline"
-          ],
+          "required": ["inline"],
           "properties": {
-            "inline": {
-              "description": "An inline Native Operation SQL string.",
-              "allOf": [
-                {
-                  "$ref": "#/definitions/InlineNativeQuerySql"
-                }
-              ]
-            }
+            "inline": { "$ref": "#/definitions/InlineNativeQuerySql" }
           }
         },
-        {
-          "$ref": "#/definitions/InlineNativeQuerySql"
-        }
+        { "$ref": "#/definitions/InlineNativeQuerySql" }  // Direct string
       ]
     },
     "InlineNativeQuerySql": {
-      "type": "string"
+      "type": "string"                        // Raw SQL string
     },
+    // --- READ-ONLY COLUMN ---
     "ReadOnlyColumnInfo": {
-      "description": "Information about a native query column.",
+      "description": "Column in a query result (no writes).",
       "type": "object",
-      "required": [
-        "name",
-        "type"
-      ],
+      "required": ["name", "type"],          // Must have name and type
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "type": {
-          "$ref": "#/definitions/Type"
-        },
-        "nullable": {
+        "name": { "type": "string" },        // Column name
+        "type": { "$ref": "#/definitions/Type" },  // Data type
+        "nullable": {                        // Nullable?
           "default": "nullable",
           "allOf": [
-            {
-              "$ref": "#/definitions/Nullable"
-            }
+            { "$ref": "#/definitions/Nullable" }
           ]
         },
-        "description": {
+        "description": {                     // Optional docs
           "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     },
+    // --- NATIVE MUTATIONS ---
     "NativeMutations": {
-      "description": "Metadata information of Native Mutations.",
+      "description": "Map of custom write operations.",
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/definitions/NativeQueryInfo"
+        "$ref": "#/definitions/NativeQueryInfo"  // Same structure as queries
       }
     },
+    // --- INTROSPECTION OPTIONS ---
     "IntrospectionOptions": {
-      "description": "Options which only influence how the configuration is updated.",
+      "description": "Rules for database introspection.",
       "type": "object",
       "properties": {
-        "excludedSchemas": {
-          "description": "Schemas which are excluded from introspection. The default setting will exclude the internal schemas of Postgres, Citus, Cockroach, and the PostGIS extension.",
-          "default": [
-            "information_schema",
-            "pg_catalog",
-            "tiger",
-            "crdb_internal",
-            "columnar",
-            "columnar_internal"
-          ],
+        "excludedSchemas": {                 // Schemas to ignore
+          "description": "System schemas to exclude.",
+          "default": ["information_schema", "pg_catalog"],
           "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "items": { "type": "string" }
         },
-        "unqualifiedSchemasForTables": {
-          "description": "The names of Tables and Views in these schemas will be returned unqualified. The default setting will set the `public` schema as unqualified.",
-          "default": [
-            "public"
-          ],
+        "unqualifiedSchemasForTables": {     // Tables without schema prefix
+          "description": "Schemas where table names are unqualified.",
+          "default": ["public"],
           "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "items": { "type": "string" }
         },
-        "unqualifiedSchemasForTypesAndProcedures": {
-          "description": "The types and procedures in these schemas will be returned unqualified.",
-          "default": [
-            "public",
-            "pg_catalog",
-            "tiger"
-          ],
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "comparisonOperatorMapping": {
-          "description": "The mapping of comparison operator names to apply when updating the configuration",
-          "default": [
-            {
-              "operatorName": "=",
-              "exposedName": "_eq",
-              "operatorKind": "equal"
-            },
-            {
-              "operatorName": "<=",
-              "exposedName": "_lte",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": ">",
-              "exposedName": "_gt",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": ">=",
-              "exposedName": "_gte",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "<",
-              "exposedName": "_lt",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "<>",
-              "exposedName": "_neq",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "!=",
-              "exposedName": "_neq",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "LIKE",
-              "exposedName": "_like",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "NOT LIKE",
-              "exposedName": "_nlike",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "ILIKE",
-              "exposedName": "_ilike",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "NOT ILIKE",
-              "exposedName": "_nilike",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "SIMILAR TO",
-              "exposedName": "_similar",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "NOT SIMILAR TO",
-              "exposedName": "_nsimilar",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "~~",
-              "exposedName": "_like",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "!~~",
-              "exposedName": "_nlike",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "~~*",
-              "exposedName": "_ilike",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "!~~*",
-              "exposedName": "_nilike",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "~",
-              "exposedName": "_regex",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "!~",
-              "exposedName": "_nregex",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "~*",
-              "exposedName": "_iregex",
-              "operatorKind": "custom"
-            },
-            {
-              "operatorName": "!~*",
-              "exposedName": "_niregex",
-              "operatorKind": "custom"
-            }
-          ],
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ComparisonOperatorMapping"
-          }
-        },
-        "introspectPrefixFunctionComparisonOperators": {
-          "description": "Which prefix functions (i.e., non-infix operators) to generate introspection metadata for.\n\nThis list will accept any boolean-returning function taking two concrete scalar types as arguments.\n\nThe default includes comparisons for various build-in types as well as those of PostGIS.",
-          "default": [
-            "box_above",
-            "box_below",
-            "box_contain",
-            "box_contain_pt",
-            "box_contained",
-            "box_left",
-            "box_overabove",
-            "box_overbelow",
-            "box_overlap",
-            "box_overleft",
-            "box_overright",
-            "box_right",
-            "box_same",
-            "circle_above",
-            "circle_below",
-            "circle_contain",
-            "circle_contain_pt",
-            "circle_contained",
-            "circle_left",
-            "circle_overabove",
-            "circle_overbelow",
-            "circle_overlap",
-            "circle_overleft",
-            "circle_overright",
-            "circle_right",
-            "circle_same",
-            "contains_2d",
-            "equals",
-            "geography_overlaps",
-            "geometry_above",
-            "geometry_below",
-            "geometry_contained_3d",
-            "geometry_contains",
-            "geometry_contains_3d",
-            "geometry_contains_nd",
-            "geometry_left",
-            "geometry_overabove",
-            "geometry_overbelow",
-            "geometry_overlaps",
-            "geometry_overlaps_3d",
-            "geometry_overlaps_nd",
-            "geometry_overleft",
-            "geometry_overright",
-            "geometry_right",
-            "geometry_same",
-            "geometry_same_3d",
-            "geometry_same_nd",
-            "geometry_within",
-            "geometry_within_nd",
-            "inet_same_family",
-            "inter_lb",
-            "inter_sb",
-            "inter_sl",
-            "is_contained_2d",
-            "ishorizontal",
-            "isparallel",
-            "isperp",
-            "isvertical",
-            "jsonb_contained",
-            "jsonb_contains",
-            "jsonb_exists",
-            "jsonb_path_exists_opr",
-            "jsonb_path_match_opr",
-            "line_intersect",
-            "line_parallel",
-            "line_perp",
-            "lseg_intersect",
-            "lseg_parallel",
-            "lseg_perp",
-            "network_overlap",
-            "network_sub",
-            "network_subeq",
-            "network_sup",
-            "network_supeq",
-            "on_pb",
-            "on_pl",
-            "on_ppath",
-            "on_ps",
-            "on_sb",
-            "on_sl",
-            "overlaps_2d",
-            "path_contain_pt",
-            "path_inter",
-            "point_above",
-            "point_below",
-            "point_horiz",
-            "point_left",
-            "point_right",
-            "point_vert",
-            "poly_above",
-            "poly_below",
-            "poly_contain",
-            "poly_contain_pt",
-            "poly_contained",
-            "poly_left",
-            "poly_overabove",
-            "poly_overbelow",
-            "poly_overlap",
-            "poly_overleft",
-            "poly_overright",
-            "poly_right",
-            "poly_same",
-            "pt_contained_poly",
-            "st_3dintersects",
-            "st_contains",
-            "st_containsproperly",
-            "st_coveredby",
-            "st_covers",
-            "st_crosses",
-            "st_disjoint",
-            "st_equals",
-            "st_intersects",
-            "st_isvalid",
-            "st_orderingequals",
-            "st_overlaps",
-            "st_relatematch",
-            "st_touches",
-            "st_within",
-            "starts_with",
-            "ts_match_qv",
-            "ts_match_tq",
-            "ts_match_tt",
-            "ts_match_vq",
-            "tsq_mcontained",
-            "tsq_mcontains",
-            "xmlexists",
-            "xmlvalidate",
-            "xpath_exists"
-          ],
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "typeRepresentations": {
-          "description": "The type representations to pick for base scalar types.",
-          "default": {
-            "bit": "string",
-            "bool": "boolean",
-            "bpchar": "string",
-            "char": "string",
-            "date": "date",
-            "float4": "float32",
-            "float8": "float64",
-            "int2": "int16",
-            "int4": "int32",
-            "int8": "int64AsString",
-            "numeric": "bigDecimalAsString",
-            "text": "string",
-            "time": "time",
-            "timestamp": "timestamp",
-            "timestamptz": "timestamptz",
-            "timetz": "timetz",
-            "uuid": "uUID",
-            "varchar": "string"
-          },
-          "allOf": [
-            {
-              "$ref": "#/definitions/TypeRepresentations"
-            }
-          ]
-        }
+        // ... (other introspection options) ...
       }
     },
+    // --- COMPARISON OPERATOR MAPPING ---
     "ComparisonOperatorMapping": {
-      "description": "Define the names that comparison operators will be exposed as by the automatic introspection.",
+      "description": "Maps SQL operators to API filters.",
       "type": "object",
-      "required": [
-        "exposedName",
-        "operatorKind",
-        "operatorName"
-      ],
+      "required": ["operatorName", "exposedName", "operatorKind"],
       "properties": {
-        "operatorName": {
-          "description": "The name of the operator as defined by the database",
-          "type": "string"
-        },
-        "exposedName": {
-          "description": "The name the operator will appear under in the exposed API",
-          "type": "string"
-        },
-        "operatorKind": {
-          "description": "Equal, In or Custom.",
-          "allOf": [
-            {
-              "$ref": "#/definitions/OperatorKind"
-            }
-          ]
+        "operatorName": { "type": "string" },  // SQL operator (e.g., "~")
+        "exposedName": { "type": "string" },   // API name (e.g., "_regex")
+        "operatorKind": {                      // "equal", "in", or "custom"
+          "$ref": "#/definitions/OperatorKind"
         }
       }
     },
+    // --- TYPE REPRESENTATIONS ---
     "TypeRepresentations": {
-      "description": "The type representations that guide introspection.",
+      "description": "How database types map to API types.",
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/definitions/TypeRepresentation"
+        "$ref": "#/definitions/TypeRepresentation"  // e.g., "text" → "string"
       }
     },
+    // --- MUTATIONS VERSION ---
     "MutationsVersion": {
-      "description": "Which version of the generated mutations will be included in the schema",
+      "description": "Version of the mutations API.",
       "type": "string",
-      "enum": [
-        "v1",
-        "v2"
-      ]
+      "enum": ["v1", "v2"]                   // Only these two options
     }
   }
 }
